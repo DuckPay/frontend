@@ -1,0 +1,157 @@
+# Language: Chinese (Simplified)
+# Author: Hangyu Dong
+
+common:
+  title: 记账系统
+  dashboard: 仪表盘
+  adminPanel: 管理员面板
+  login: 登录
+  logout: 登出
+  register: 注册
+  username: 用户名
+  password: 密码
+  confirmPassword: 确认密码
+  email: 邮箱
+  nickname: 昵称
+  groups: 组
+  systemGroup: 系统组
+  adminGroup: 管理员组
+  regularUser: 普通用户
+  normal: 普通
+  save: 保存
+  cancel: 取消
+  delete: 删除
+  edit: 编辑
+  add: 添加
+  view: 查看
+  back: 返回
+  submit: 提交
+  required: 必填
+  optional: 可选
+  yes: 是
+  no: 否
+  loading: 加载中...
+  success: 成功
+  error: 错误
+  warning: 警告
+  info: 信息
+  confirm: 确认
+  deleteConfirm: 确定要删除吗？
+  connectionStatus:
+    connected: 已连接
+    disconnected: 已断开
+    connecting: 连接中...
+  registrationTime: 注册时间
+  actions: 操作
+
+login:
+  title: 登录
+  subtitle: 请输入您的用户名和密码
+  forgotPassword: 忘记密码？
+  noAccount: 没有账号？
+  registerNow: 立即注册
+  loginFailed: 登录失败，请检查用户名和密码
+  usernameRequired: 请输入用户名
+  passwordRequired: 请输入密码
+
+register:
+  title: 注册
+  subtitle: 请填写注册信息
+  hasAccount: 已有账号？
+  loginNow: 立即登录
+  registerFailed: 注册失败
+  usernameRequired: 请输入用户名
+  emailRequired: 请输入邮箱
+  passwordRequired: 请输入密码
+  confirmPasswordRequired: 请输入确认密码
+  passwordMismatch: 密码和确认密码不一致
+  usernameExists: 用户名已存在
+  emailExists: 邮箱已存在
+
+admin:
+  users: 用户管理
+  userList: 用户列表
+  addUser: 添加用户
+  editUser: 编辑用户
+  deleteUser: 删除用户
+  groups: 组管理
+  groupList: 组列表
+  addGroup: 添加组
+  editGroup: 编辑组
+  deleteGroup: 删除组
+  groupName: 组名称
+  groupDescription: 组描述
+  isAdminGroup: 管理员组
+  isSystemGroup: 系统组
+  cannotDeleteSystemGroup: 系统组无法删除
+  groupCreated: 组创建成功
+  groupUpdated: 组更新成功
+  groupDeleted: 组删除成功
+  userCreated: 用户创建成功
+  userUpdated: 用户更新成功
+  userDeleted: 用户删除成功
+  noPermission: 没有权限
+  cannotEditOwner: 不能编辑所有者
+  cannotEditAdmin: 不能编辑管理员
+  pleaseFillAllRequiredFields: 请填写所有必填字段
+  passwordLength: 密码长度至少为6个字符
+  groupNameExists: 组名称已存在
+  groupNotFound: 组不存在
+  userNotFound: 用户不存在
+  newPassword: 新密码
+  keepEmptyToNotChange: 留空则不修改
+  selectUserGroups: 选择用户组 
+  managePermissions: 管理权限
+  groupLevel: 组等级
+  groupLevelDescription: 组等级决定了组的权限优先级，数值越高权限越大
+
+user:
+  myProfile: 我的资料
+  settings: 设置
+  changePassword: 修改密码
+  profileUpdated: 资料更新成功
+  passwordChanged: 密码修改成功
+  oldPassword: 旧密码
+  newPassword: 新密码
+  confirmNewPassword: 确认新密码
+  oldPasswordIncorrect: 旧密码不正确
+  newPasswordMismatch: 新密码和确认新密码不一致
+
+transaction:
+  transactions: 交易记录
+  addTransaction: 添加交易
+  editTransaction: 编辑交易
+  deleteTransaction: 删除交易
+  amount: 金额
+  category: 分类
+  date: 日期
+  description: 描述
+  type: 类型
+  income: 收入
+  expense: 支出
+  transfer: 转账
+  balance: 余额
+  totalIncome: 总收入
+  totalExpense: 总支出
+  netBalance: 净余额
+  transactionCreated: 交易创建成功
+  transactionUpdated: 交易更新成功
+  transactionDeleted: 交易删除成功
+  pleaseSelectCategory: 请选择分类
+  pleaseEnterAmount: 请输入金额
+  pleaseEnterDate: 请输入日期
+
+category:
+  categories: 分类管理
+  addCategory: 添加分类
+  editCategory: 编辑分类
+  deleteCategory: 删除分类
+  categoryName: 分类名称
+  categoryType: 分类类型
+  categoryCreated: 分类创建成功
+  categoryUpdated: 分类更新成功
+  categoryDeleted: 分类删除成功
+  categoryNotFound: 分类不存在
+  categoryNameExists: 分类名称已存在
+  pleaseEnterCategoryName: 请输入分类名称
+  pleaseSelectCategoryType: 请选择分类类型

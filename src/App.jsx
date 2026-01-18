@@ -32,6 +32,7 @@ const AppContent = () => {
     <div className="min-h-screen bg-gray-100">
       <Routes>
         <Route path="/" element={<Auth />} />
+        <Route path="/auth" element={<Auth />} />
         <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
         <Route path="/admin" element={<AdminRoute><AdminPanel /></AdminRoute>} />
       </Routes>

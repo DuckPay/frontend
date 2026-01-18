@@ -234,6 +234,8 @@ const AdminPanel = () => {
     
     // Check which form we're dealing with based on the parent form's ID or the input's context
     const isUserForm = form && form.id === 'userForm' || !form;
+    const isGroupForm = form && form.id === 'groupForm';
+    const isOicdProviderForm = form && form.id === 'oicdProviderForm';
     
     if (isUserForm) {
       // Handle checkbox for groups in user form
@@ -252,7 +254,7 @@ const AdminPanel = () => {
       } else {
         setFormData(prev => ({ ...prev, [name]: value }));
       }
-    } else {
+    } else if (isGroupForm) {
       // Handle group form input
       if (name === 'isAdmin' && type === 'checkbox') {
         // If isAdmin is unchecked, uncheck all permissions and hide permission checkboxes
@@ -275,6 +277,23 @@ const AdminPanel = () => {
         ...prev,
         [name]: type === 'checkbox' ? checked : value
       }));
+    } else if (isOicdProviderForm) {
+      // Handle OICD provider form input
+      if (name === 'name') {
+        // When provider name changes, automatically update redirectUri
+        const baseUrl = window.location.origin;
+        const redirectUri = `${baseUrl}/api/oauth/callback/${value.toLowerCase()}`;
+        setOicdProviderFormData(prev => ({
+          ...prev,
+          [name]: value,
+          redirectUri: redirectUri
+        }));
+      } else {
+        setOicdProviderFormData(prev => ({
+          ...prev,
+          [name]: type === 'checkbox' ? checked : value
+        }));
+      }
     }
   };
   
@@ -501,6 +520,204 @@ const AdminPanel = () => {
     });
   };
 
+  // OICD Provider state
+  const [oicdProviders, setOicdProviders] = useState([]);
+  const [selectedProvider, setSelectedProvider] = useState(null);
+  const [providerLoading, setProviderLoading] = useState(true);
+  
+  // Form state for add/edit OICD provider
+  const [oicdProviderFormData, setOicdProviderFormData] = useState({
+    name: '',
+    clientId: '',
+    clientSecret: '',
+    authorizationUrl: '',
+    tokenUrl: '',
+    userinfoUrl: '',
+    redirectUri: '',
+    scope: 'openid email profile',
+    enabled: true
+  });
+  
+  // Fetch all OICD providers
+  const fetchOicdProviders = async () => {
+    try {
+      setProviderLoading(true);
+      const response = await api.get('/oauth/providers');
+      setOicdProviders(response.data);
+    } catch (err) {
+      setError(err.message || 'Failed to fetch OICD providers');
+    } finally {
+      setProviderLoading(false);
+    }
+  };
+  
+  // Initialize component
+  useEffect(() => {
+    fetchCurrentUser();
+    fetchUsers();
+    fetchGroups();
+    fetchOicdProviders();
+  }, []);
+  
+  // Handle add OICD provider form submit
+  const handleAddOicdProvider = async (e) => {
+    e.preventDefault();
+    setError('');
+    
+    // Validate form
+    if (!oicdProviderFormData.name || !oicdProviderFormData.clientId || !oicdProviderFormData.clientSecret || 
+        !oicdProviderFormData.authorizationUrl || !oicdProviderFormData.tokenUrl || !oicdProviderFormData.userinfoUrl) {
+      setError('请填写所有必填字段');
+      return;
+    }
+    
+    try {
+      // Call API to add OICD provider
+      await api.post('/oauth/providers', {
+        name: oicdProviderFormData.name,
+        clientId: oicdProviderFormData.clientId,
+        clientSecret: oicdProviderFormData.clientSecret,
+        authorizationUrl: oicdProviderFormData.authorizationUrl,
+        tokenUrl: oicdProviderFormData.tokenUrl,
+        userinfoUrl: oicdProviderFormData.userinfoUrl,
+        redirectUri: oicdProviderFormData.redirectUri,
+        scope: oicdProviderFormData.scope,
+        enabled: oicdProviderFormData.enabled
+      });
+      
+      // Reset form and go back to OICD providers tab
+      setOicdProviderFormData({
+        name: '',
+        clientId: '',
+        clientSecret: '',
+        authorizationUrl: '',
+        tokenUrl: '',
+        userinfoUrl: '',
+        redirectUri: '',
+        scope: 'openid email profile',
+        enabled: true
+      });
+      setActiveTab('oicdProviders');
+      fetchOicdProviders();
+    } catch (err) {
+      setError(err.message || '添加OICD Provider失败');
+    }
+  };
+  
+  // Handle edit OICD provider form submit
+  const handleEditOicdProvider = async (e) => {
+    e.preventDefault();
+    setError('');
+    
+    // Validate form
+    if (!oicdProviderFormData.name || !oicdProviderFormData.clientId || !oicdProviderFormData.clientSecret || 
+        !oicdProviderFormData.authorizationUrl || !oicdProviderFormData.tokenUrl || !oicdProviderFormData.userinfoUrl) {
+      setError('请填写所有必填字段');
+      return;
+    }
+    
+    try {
+      // Call API to update OICD provider
+      await api.put(`/oauth/providers/${selectedProvider.id}`, {
+        name: oicdProviderFormData.name,
+        clientId: oicdProviderFormData.clientId,
+        clientSecret: oicdProviderFormData.clientSecret,
+        authorizationUrl: oicdProviderFormData.authorizationUrl,
+        tokenUrl: oicdProviderFormData.tokenUrl,
+        userinfoUrl: oicdProviderFormData.userinfoUrl,
+        redirectUri: oicdProviderFormData.redirectUri,
+        scope: oicdProviderFormData.scope,
+        enabled: oicdProviderFormData.enabled
+      });
+      
+      // Reset form and go back to OICD providers tab
+      setOicdProviderFormData({
+        name: '',
+        clientId: '',
+        clientSecret: '',
+        authorizationUrl: '',
+        tokenUrl: '',
+        userinfoUrl: '',
+        redirectUri: '',
+        scope: 'openid email profile',
+        enabled: true
+      });
+      setSelectedProvider(null);
+      setActiveTab('oicdProviders');
+      fetchOicdProviders();
+    } catch (err) {
+      setError(err.message || '编辑OICD Provider失败');
+    }
+  };
+  
+  // Handle edit OICD provider button click
+  const handleEditOicdProviderClick = (provider) => {
+    setSelectedProvider(provider);
+    setOicdProviderFormData({
+      name: provider.name,
+      clientId: provider.clientId,
+      clientSecret: provider.clientSecret,
+      authorizationUrl: provider.authorizationUrl,
+      tokenUrl: provider.tokenUrl,
+      userinfoUrl: provider.userinfoUrl,
+      redirectUri: provider.redirectUri,
+      scope: provider.scope,
+      enabled: provider.enabled
+    });
+    setActiveTab('editOicdProvider');
+  };
+  
+  // Handle delete OICD provider button click
+  const handleDeleteOicdProvider = async (providerId) => {
+    if (window.confirm('确定要删除这个OICD Provider吗？')) {
+      try {
+        await api.delete(`/oauth/providers/${providerId}`);
+        fetchOicdProviders();
+      } catch (err) {
+        setError(err.message || '删除OICD Provider失败');
+      }
+    }
+  };
+
+  // Handle OIDC discovery URL auto-fill
+  const handleOidcDiscovery = async () => {
+    setError('');
+    
+    // Get discovery URL from input
+    const discoveryUrlInput = document.getElementById('discoveryUrl');
+    const discoveryUrl = discoveryUrlInput?.value?.trim();
+    
+    if (!discoveryUrl) {
+      setError('请输入OIDC发现URL');
+      return;
+    }
+    
+    try {
+      // Fetch OIDC discovery document
+      const response = await fetch(discoveryUrl);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const discoveryData = await response.json();
+      
+      // Update form data with discovered values
+      setOicdProviderFormData(prev => ({
+        ...prev,
+        authorizationUrl: discoveryData.authorization_endpoint || prev.authorizationUrl,
+        tokenUrl: discoveryData.token_endpoint || prev.tokenUrl,
+        userinfoUrl: discoveryData.userinfo_endpoint || prev.userinfoUrl,
+        scope: prev.scope || 'openid email profile' // Keep existing scope if provided, otherwise use default
+      }));
+      
+      // Clear the discovery URL input after successful auto-fill
+      discoveryUrlInput.value = '';
+      
+    } catch (err) {
+      setError(`OIDC发现失败: ${err.message}`);
+    }
+  };
+  
   // Dynamic tabs based on user groups and permissions
   const tabs = [
     { id: 'users', name: t('admin.userList'), icon: <Users size={20} /> },
@@ -512,6 +729,14 @@ const AdminPanel = () => {
     tabs.push(
       { id: 'groups', name: t('admin.groupList'), icon: <Settings size={20} /> },
       { id: 'addGroup', name: t('admin.addGroup'), icon: <UserPlus size={20} /> }
+    );
+  }
+  
+  // Add OICD provider management tabs only if user has manage_oicd_providers permission
+  if (currentUser && (isOwner(currentUser) || hasPermission(currentUser, 'manage_oicd_providers'))) {
+    tabs.push(
+      { id: 'oicdProviders', name: t('admin.oicdProviderList'), icon: <Shield size={20} /> },
+      { id: 'addOicdProvider', name: t('admin.addOicdProvider'), icon: <UserPlus size={20} /> }
     );
   }
   
@@ -1103,6 +1328,303 @@ const AdminPanel = () => {
                         description: '',
                         isAdmin: false,
                         isSystem: false
+                      });
+                    }}
+                    className="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-md transition-colors"
+                  >
+                    {t('common.cancel')}
+                  </button>
+                </div>
+              </form>
+            </div>
+          )}
+          
+          {/* OICD Providers tab */}
+          {activeTab === 'oicdProviders' && (
+            <div>
+              <h2 className="text-xl font-semibold text-gray-800 mb-6">{t('admin.oicdProviderList')}</h2>
+              
+              {/* Loading state */}
+              {providerLoading ? (
+                <div className="flex justify-center items-center py-10">
+                  <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+                  <span className="ml-2 text-gray-600">{t('common.loading')}</span>
+                </div>
+              ) : (
+                /* OICD Providers table */
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          ID
+                        </th>
+                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          {t('admin.providerName')}
+                        </th>
+                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          {t('admin.clientId')}
+                        </th>
+                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          {t('admin.enabled')}
+                        </th>
+                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          {t('common.registrationTime')}
+                        </th>
+                        <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          {t('common.actions')}
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {oicdProviders.map((provider) => (
+                        <tr key={provider.id} className="hover:bg-gray-50">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {provider.id}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                            {provider.name}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {provider.clientId}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${provider.enabled ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                              {provider.enabled ? t('common.yes') : t('common.no')}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {new Date(provider.createdAt).toLocaleString()}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            {/* Edit button */}
+                            <button 
+                              className="text-blue-600 hover:text-blue-900 mr-4"
+                              onClick={() => handleEditOicdProviderClick(provider)}
+                            >
+                              {t('common.edit')}
+                            </button>
+                            
+                            {/* Delete button */}
+                            <button 
+                              className="text-red-600 hover:text-red-900"
+                              onClick={() => handleDeleteOicdProvider(provider.id)}
+                            >
+                              {t('common.delete')}
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          )}
+          
+          {/* Add/Edit OICD Provider tab */}
+          {(activeTab === 'addOicdProvider' || activeTab === 'editOicdProvider') && (
+            <div>
+              <h2 className="text-xl font-semibold text-gray-800 mb-6">
+                {activeTab === 'addOicdProvider' ? t('admin.addOicdProvider') : t('admin.editOicdProvider')}
+              </h2>
+              
+              <form onSubmit={activeTab === 'addOicdProvider' ? handleAddOicdProvider : handleEditOicdProvider} id="oicdProviderForm">
+                {/* OIDC Discovery URL section */}
+                <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-100">
+                  <h3 className="text-sm font-semibold text-gray-800 mb-3">{t('admin.oidcDiscovery')}</h3>
+                  <div className="flex flex-col md:flex-row gap-4">
+                    <div className="flex-1">
+                      <label className="block text-gray-700 text-sm font-bold mb-2">
+                        {t('admin.discoveryUrl')}
+                      </label>
+                      <input
+                        type="url"
+                        id="discoveryUrl"
+                        placeholder="https://example.com/.well-known/openid-configuration"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div className="flex items-end">
+                      <button
+                        type="button"
+                        onClick={handleOidcDiscovery}
+                        className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-md transition-colors"
+                      >
+                        {t('admin.autoFill')}
+                      </button>
+                    </div>
+                  </div>
+                  <p className="mt-2 text-xs text-gray-500">
+                    {t('admin.discoveryUrlHint')}
+                  </p>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Provider Name */}
+                  <div>
+                    <label className="block text-gray-700 text-sm font-bold mb-2">
+                      {t('admin.providerName')} <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      name="name"
+                      value={oicdProviderFormData.name}
+                      onChange={(e) => setOicdProviderFormData(prev => ({ ...prev, name: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      required
+                    />
+                  </div>
+                  
+                  {/* Client ID */}
+                  <div>
+                    <label className="block text-gray-700 text-sm font-bold mb-2">
+                      {t('admin.clientId')} <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      name="clientId"
+                      value={oicdProviderFormData.clientId}
+                      onChange={(e) => setOicdProviderFormData(prev => ({ ...prev, clientId: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      required
+                    />
+                  </div>
+                  
+                  {/* Client Secret */}
+                  <div>
+                    <label className="block text-gray-700 text-sm font-bold mb-2">
+                      {t('admin.clientSecret')} <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      name="clientSecret"
+                      value={oicdProviderFormData.clientSecret}
+                      onChange={(e) => setOicdProviderFormData(prev => ({ ...prev, clientSecret: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      required
+                    />
+                  </div>
+                  
+                  {/* Authorization URL */}
+                  <div>
+                    <label className="block text-gray-700 text-sm font-bold mb-2">
+                      {t('admin.authorizationUrl')} <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="url"
+                      name="authorizationUrl"
+                      value={oicdProviderFormData.authorizationUrl}
+                      onChange={(e) => setOicdProviderFormData(prev => ({ ...prev, authorizationUrl: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      required
+                    />
+                  </div>
+                  
+                  {/* Token URL */}
+                  <div>
+                    <label className="block text-gray-700 text-sm font-bold mb-2">
+                      {t('admin.tokenUrl')} <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="url"
+                      name="tokenUrl"
+                      value={oicdProviderFormData.tokenUrl}
+                      onChange={(e) => setOicdProviderFormData(prev => ({ ...prev, tokenUrl: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      required
+                    />
+                  </div>
+                  
+                  {/* User Info URL */}
+                  <div>
+                    <label className="block text-gray-700 text-sm font-bold mb-2">
+                      {t('admin.userinfoUrl')} <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="url"
+                      name="userinfoUrl"
+                      value={oicdProviderFormData.userinfoUrl}
+                      onChange={(e) => setOicdProviderFormData(prev => ({ ...prev, userinfoUrl: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      required
+                    />
+                  </div>
+                  
+                  {/* Redirect URI */}
+                  <div>
+                    <label className="block text-gray-700 text-sm font-bold mb-2">
+                      {t('admin.redirectUri')}
+                    </label>
+                    <input
+                      type="url"
+                      name="redirectUri"
+                      value={oicdProviderFormData.redirectUri}
+                      onChange={(e) => setOicdProviderFormData(prev => ({ ...prev, redirectUri: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    <p className="mt-1 text-sm text-gray-500">
+                      {t('admin.redirectUriHint')}
+                    </p>
+                    <p className="mt-1 text-xs text-gray-400">
+                      {t('admin.redirectUriExample')}
+                    </p>
+                  </div>
+                  
+                  {/* Scope */}
+                  <div>
+                    <label className="block text-gray-700 text-sm font-bold mb-2">
+                      {t('admin.scope')}
+                    </label>
+                    <input
+                      type="text"
+                      name="scope"
+                      value={oicdProviderFormData.scope}
+                      onChange={(e) => setOicdProviderFormData(prev => ({ ...prev, scope: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  
+                  {/* Enabled */}
+                  <div className="md:col-span-2">
+                    <div className="flex items-center">
+                      <input
+                        type="checkbox"
+                        name="enabled"
+                        id="enabled"
+                        checked={oicdProviderFormData.enabled}
+                        onChange={(e) => setOicdProviderFormData(prev => ({ ...prev, enabled: e.target.checked }))}
+                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                      />
+                      <label htmlFor="enabled" className="ml-3 block text-sm font-medium text-gray-700">
+                        {t('admin.enabled')}
+                      </label>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="mt-6 flex space-x-4">
+                  <button
+                    type="submit"
+                    className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-md transition-colors"
+                  >
+                    {activeTab === 'addOicdProvider' ? t('admin.addOicdProvider') : t('common.save')}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActiveTab('oicdProviders');
+                      setSelectedProvider(null);
+                      setOicdProviderFormData({
+                        name: '',
+                        clientId: '',
+                        clientSecret: '',
+                        authorizationUrl: '',
+                        tokenUrl: '',
+                        userinfoUrl: '',
+                        redirectUri: '',
+                        scope: 'openid email profile',
+                        enabled: true
                       });
                     }}
                     className="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-md transition-colors"

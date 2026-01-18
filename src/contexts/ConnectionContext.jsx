@@ -15,7 +15,10 @@ export const ConnectionProvider = ({ children }) => {
     try {
       setIsChecking(true);
       // Use a separate axios instance to avoid token issues
-      const response = await fetch('/api/status', {
+      const apiUrl = import.meta.env.MODE === 'production' 
+        ? `${import.meta.env.VITE_API_URL}/api/status` 
+        : '/api/status';
+      const response = await fetch(apiUrl, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',

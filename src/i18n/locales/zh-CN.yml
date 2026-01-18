@@ -43,6 +43,11 @@ common:
     connecting: 连接中...
   registrationTime: 注册时间
   actions: 操作
+  or: 或
+  loginWith: 使用
+  accountLinking: 账户链接
+  accountLinkingDescription: 您正在使用 {{provider}} 账户登录系统。由于您是首次使用此方式登录，需要将您的 {{provider}} 账户与系统账户关联。
+  accountLinkingInstructions: 请输入密码创建一个新账户，或使用现有账户的密码进行关联。
 
 login:
   title: 登录
@@ -104,6 +109,24 @@ admin:
   managePermissions: 管理权限
   groupLevel: 组等级
   groupLevelDescription: 组等级决定了组的权限优先级，数值越高权限越大
+  oicdProviderList: OICD Provider列表
+  addOicdProvider: 添加OICD Provider
+  editOicdProvider: 编辑OICD Provider
+  providerName: Provider名称
+  clientId: 客户端ID
+  clientSecret: 客户端密钥
+  authorizationUrl: 授权URL
+  tokenUrl: 令牌URL
+  userinfoUrl: 用户信息URL
+  redirectUri: 重定向URI
+  scope: 权限范围
+  enabled: 启用
+  redirectUriHint: 回调链接格式为：http://localhost:8000/api/oauth/callback/[provider_name]
+  redirectUriExample: 示例：http://localhost:8000/api/oauth/callback/google
+  oidcDiscovery: OIDC发现
+  discoveryUrl: 发现URL
+  autoFill: 自动填写
+  discoveryUrlHint: 输入OIDC提供者的发现URL（通常为/.well-known/openid-configuration），系统将自动填充相关配置
 
 user:
   myProfile: 我的资料

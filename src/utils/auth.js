@@ -2,7 +2,9 @@ import axios from 'axios';
 
 // Create axios instance with base URL and interceptors
 const api = axios.create({
-  baseURL: '/api',
+  baseURL: import.meta.env.MODE === 'production' 
+    ? `${import.meta.env.VITE_API_URL}/api` 
+    : '/api',
 });
 
 // Add request interceptor to include token in headers
@@ -51,12 +53,44 @@ export const getCurrentUser = async () => {
   }
 };
 
+export const updateUserInfo = async (userData) => {
+  try {
+    const response = await api.post('/users/me/update', userData);
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.message;
+  }
+};
+
 export const logout = () => {
   localStorage.removeItem('token');
 };
 
 export const isAuthenticated = () => {
   return localStorage.getItem('token') !== null;
+};
+
+// OICD Provider functions
+export const getEnabledOicdProviders = async () => {
+  try {
+    const response = await api.get('/oauth/providers/enabled');
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.message;
+  }
+};
+
+export const linkAccount = async (oicdData) => {
+  try {
+    const response = await api.post('/oauth/link-account', oicdData);
+    // Save the access token from the response
+    if (response.data.access_token) {
+      localStorage.setItem('token', response.data.access_token);
+    }
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.message;
+  }
 };
 
 // Permission check functions
